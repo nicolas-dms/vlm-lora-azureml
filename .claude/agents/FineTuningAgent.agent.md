@@ -4,6 +4,14 @@ Maintainer instructions for this repository. Read this before touching anything.
 The companion file `.github/agents/run-demo.agent.md` is the *user-facing* runbook
 (symptom -> cause -> command); this file is the *contributor* guardrail.
 
+## Where this pushes
+
+- Remote: **`https://github.com/nicolas-dms/vlm-lora-azureml`** (`origin`), branch **`main`**,
+  **public**. Authenticated with the GitHub CLI (`gh auth status` to check).
+- **The repo is public, so every push is irreversible.** Run the two checks under
+  *Secrets and identifiers* BEFORE `git push`, every time - not once, at publication.
+- Never `git push --force`, never amend a commit that is already on `origin/main`.
+
 ## What this repo is
 
 A **self-contained demonstration** that you can take a vision-language model that is **absent from the
@@ -47,6 +55,22 @@ This repo is intended to be **public**. Before any commit:
   contain blob URLs, the workspace GUID, Studio run links and local paths. Cleaning the source is not
   enough. Verify with a grep over the whole tree, not by eye.
 - Never print or commit keys, connection strings or tokens. Prefer Managed Identity + RBAC.
+
+### The two pre-push checks
+
+Run both, every time, before `git push`. Matches inside `.env` and `.venv/` are expected - they are
+gitignored. A match anywhere else stops the push.
+
+```powershell
+# 1. identifiers - fill the alternation from YOUR .env, plus your egress IP and username
+Get-ChildItem -Recurse -File | Select-String -Pattern "<sub-id>|<tenant-id>|<rg>|<workspace>|<storage>|<your-ip>|<username>"
+
+# 2. notebook outputs - every code cell must report 0 outputs and a null execution count
+$j = Get-Content finetune\notebooks\demo_finetune.ipynb -Raw | ConvertFrom-Json
+$j.cells | Where-Object { $_.cell_type -eq 'code' } | ForEach-Object { "{0} outputs exec={1}" -f $_.outputs.Count, $_.execution_count }
+```
+
+`scripts/strip_notebook_outputs.py` does the stripping when check 2 fails.
 
 ## Layout
 
