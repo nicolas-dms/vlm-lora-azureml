@@ -215,6 +215,10 @@ Each of these cost real time to discover. Changing one requires evidence, not a 
       `workspaceblobstore`, and reads everything from `.env`. `scripts/` is optional.
 - [x] `scripts/61_vlm_dataset.ps1` documented as the optional ADLS Gen2 variant; the common path no
       longer needs it.
-- [ ] Consider committing the two evaluation PNGs as README illustrations - notebook outputs are
-      stripped, so the results are otherwise invisible to a reader.
-- [ ] `git init` and first commit. **Run the identifier grep first.**
+- [x] The two evaluation PNGs live in `docs/` and are shown in the README. Notebook outputs are
+      stripped, so without them the results are invisible to a reader. **They are the only build
+      artifacts that are committed** - regenerate them with the `eval_visual.py` cell and re-copy
+      them out of `tmp-eval/` when the numbers change.
+- [x] Published at `nicolas-dms/vlm-lora-azureml`. The identifier grep and the notebook-output
+      check are now **pre-push rituals**, not one-off tasks: run both before every push.
+

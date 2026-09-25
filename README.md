@@ -30,6 +30,24 @@ The notebook runs these in order, and demonstrates nothing else:
 blue/green, autoscaling. Success means *"the chain runs end to end and every link is visible"*,
 not *"the model is good"*.
 
+## What 10 MB actually buys
+
+The last cells score both models on the **test split** - windows chronologically later than
+everything in training - locally, on CPU, from the adapter. No endpoint, no GPU, no Azure call,
+which is itself the argument of brick 6. Below is a real run of 24 unseen charts.
+
+![base vs fine-tuned](docs/eval_scoreboard.png)
+
+**Be precise about the claim.** 500 samples on a 256M model do not produce a maintenance expert,
+and the confusion matrix on the right says so honestly. What a LoRA of this size teaches, and
+teaches completely, is a **format and a vocabulary**: valid JSON goes 50% -> 100%, schema
+compliance 0% -> 100%, and `eta_minutes` stops being invented. Diagnostic accuracy barely moves.
+
+Which is exactly what the side-by-side shows - the base model free-associates until it runs out
+of tokens, the same weights plus 10 MB answer in one line:
+
+![prose on the left, work orders on the right](docs/eval_examples.png)
+
 ## Prerequisites
 
 One hard requirement: **an Azure subscription you can create resources in**. The resource group,
@@ -206,6 +224,7 @@ finetune/
   export/       run_local_adapter.py, eval_visual.py, README-portability.md
   notebooks/    demo_finetune.ipynb    <- the demo, bricks 1-6 in order
 scripts/        optional CLI equivalents, see below
+docs/           eval_scoreboard.png, eval_examples.png  <- a real run, for the section above
 .github/agents/ run-demo.agent.md      <- the agent that can run all of it for you
 .claude/agents/ FineTuningAgent.agent.md <- the agent that maintains it
 ```
