@@ -149,8 +149,10 @@ what is still running and what is it costing me?
 shut everything down
 ```
 
-For **Claude Code** or another agent that reads repository instructions, point it at that same file;
-`CLAUDE.md` at the root covers the maintainer-side rules for changing the repo rather than running it.
+For **Claude Code** or another agent that reads repository instructions, point it at that same file.
+A second agent, [.claude/agents/FineTuningAgent.agent.md](.claude/agents/FineTuningAgent.agent.md),
+covers the maintainer side - scope discipline, the secrets rules, and every hard-won technical
+constraint - for *changing* the repo rather than running it.
 
 The agent asks before the two cells that cost money - the GPU pipeline and the endpoint - and offers
 the teardown at the end of a session. It does not read or echo your `.env`.
@@ -205,6 +207,7 @@ finetune/
   notebooks/    demo_finetune.ipynb    <- the demo, bricks 1-6 in order
 scripts/        optional CLI equivalents, see below
 .github/agents/ run-demo.agent.md      <- the agent that can run all of it for you
+.claude/agents/ FineTuningAgent.agent.md <- the agent that maintains it
 ```
 
 Everything the notebook needs is driven from the notebook. The `scripts/` folder is optional:
