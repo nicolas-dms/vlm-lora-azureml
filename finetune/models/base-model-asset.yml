@@ -1,0 +1,25 @@
+$schema: https://azuremlschemas.azureedge.net/latest/model.schema.json
+
+name: base-smolvlm
+version: "1"
+type: custom_model
+
+description: >-
+  SmolVLM-256M-Instruct, mirrored from the Hugging Face Hub into this workspace.
+  This model is NOT in the Azure AI model catalog - registering it here is what
+  gives it a version, a lineage and a license statement inside AML.
+
+# The notebook registers this asset through the SDK instead, so it can inject the
+# SHA that fetch_base_model.py actually resolved. If you prefer the CLI:
+#   az ml model create -f finetune/models/base-model-asset.yml \
+#     --set path=<local download folder> --set tags.revision=<resolved commit SHA>
+# The placeholders are kept so the file reads as a complete asset definition.
+path: ../../tmp-base-model
+
+tags:
+  source: huggingface
+  repo: HuggingFaceTB/SmolVLM-256M-Instruct
+  revision: PINNED_AT_CREATION
+  license: apache-2.0
+  in_azure_catalog: "false"
+  track: B

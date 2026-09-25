@@ -1,0 +1,29 @@
+# Serving environment.
+#
+# CPU, deliberately. The merged model is 256M parameters: a GPU online deployment
+# would bill 24/7 for a latency nobody in the demo can perceive.
+#
+# FROM the curated minimal inference image because it already ships
+# azureml-inference-server-http, which is what actually calls init()/run() in
+# score.py. Building this on a plain python image is the classic way to get a
+# container that starts, answers nothing, and reports no error.
+FROM mcr.microsoft.com/azureml/curated/minimal-py311-inference:60
+
+# The CPU wheel index matters: the default torch wheel drags ~2.5 GB of CUDA
+# runtime into an image that will never see a GPU, and the deployment then times
+# out on image pull rather than on anything interesting.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+        torch==2.6.0 \
+ && pip install --no-cache-dir \
+        "numpy<2" \
+        transformers==4.49.0 \
+        accelerate==1.4.0 \
+        num2words==0.5.13 \
+        pillow==11.1.0 \
+        peft==0.14.0
+# "numpy<2" is kept in sync with Dockerfile.train on purpose. merge_lora runs on
+# this image and imports peft, which drags in the same transformers lazy-import
+# chain that broke on numpy 2 in the training image. Same pin, same reason.
+# peft is here for the merge_lora step, which reuses this image: merging is CPU
+# arithmetic and has no business pulling the 10 GB CUDA training image onto a
+# DS3_v2. It costs ~1 MB in the serving image and saves several minutes per run.

@@ -1,0 +1,67 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+
+display_name: vlm-lora-finetune
+experiment_name: maint-vlm-lora
+description: >-
+  train_lora (T4 spot) -> merge_lora (CPU). Two steps, two artifacts: the adapter
+  and the merged weights.
+
+  There is deliberately no prep step (the dataset is already built and versioned
+  as maintenance_vlm_ds) and no evaluate step (output quality is out of scope for
+  this demo).
+
+  Registration of the two outputs is done OUTSIDE the pipeline, by the notebook.
+  Doing it in a component would need the job to authenticate back to the workspace,
+  and would register through MLflow - which stamps the assets as mlflow_model and
+  breaks the custom score.py serving path.
+
+settings:
+  # Deliberate: only train_lora is worth a GPU, and it asks for one explicitly.
+  default_compute: azureml:cpu-cluster
+  continue_on_step_failure: false
+
+inputs:
+  base_model:
+    type: custom_model
+    path: azureml:base-smolvlm:1
+  dataset:
+    type: uri_folder
+    path: azureml:maintenance_vlm_ds:1
+  epochs: 2
+  lora_r: 8
+  lora_alpha: 16
+  # 0 = whole train split (500 samples). Set to ~40 for a 3-minute smoke run
+  # that proves the plumbing without renting the GPU for long.
+  max_samples: 0
+
+outputs:
+  adapter:
+    type: uri_folder
+  merged:
+    type: uri_folder
+
+jobs:
+  train_lora:
+    type: command
+    component: ../components/train_lora.yml
+    compute: azureml:gpu-cluster-spot
+    inputs:
+      base_model: ${{parent.inputs.base_model}}
+      dataset: ${{parent.inputs.dataset}}
+      epochs: ${{parent.inputs.epochs}}
+      lora_r: ${{parent.inputs.lora_r}}
+      lora_alpha: ${{parent.inputs.lora_alpha}}
+      max_samples: ${{parent.inputs.max_samples}}
+    outputs:
+      adapter_output: ${{parent.outputs.adapter}}
+
+  merge_lora:
+    type: command
+    component: ../components/merge_lora.yml
+    compute: azureml:cpu-cluster
+    inputs:
+      base_model: ${{parent.inputs.base_model}}
+      adapter_input: ${{parent.jobs.train_lora.outputs.adapter_output}}
+    outputs:
+      merged_output: ${{parent.outputs.merged}}

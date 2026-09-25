@@ -1,0 +1,7 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+
+name: maint-vlm-ep
+description: >-
+  Serves the fine-tuned maintenance VLM. One endpoint, one deployment, no
+  blue/green - traffic management is out of scope for this demo.
+auth_mode: key

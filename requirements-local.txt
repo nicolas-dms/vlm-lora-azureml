@@ -1,0 +1,23 @@
+# Brick 6 only: run the 10 MB adapter on your own CPU, outside Azure.
+#
+#   python -m pip install -r requirements-local.txt
+#
+# The extra index pulls the CPU-only torch build (~200 MB instead of ~2.5 GB of
+# CUDA wheels you will never use here: a 256M model answers in seconds on a CPU).
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch>=2.2
+
+# Pinned to the SAME versions as finetune/environments/Dockerfile.train, and not
+# a floor. Brick 6 claims the detached adapter gives the same answer as the
+# endpoint - that claim is only worth something if the stack loading the adapter
+# matches the one that trained it. Left open as ">=4.46", pip resolves this to
+# transformers 5.x, a major version the adapter was never produced against, and
+# any difference in the answer becomes impossible to attribute.
+transformers==4.49.0
+peft==0.14.0
+pillow>=10.0
+
+# Hard, undeclared import of the Idefics3/SmolVLM processor. Without it the
+# processor raises ModuleNotFoundError at load time, far from anything obvious.
+num2words>=0.5

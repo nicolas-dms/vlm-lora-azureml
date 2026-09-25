@@ -1,0 +1,18 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+
+# No explicit version: AML environments are immutable, so re-registering "1" with a
+# changed Dockerfile would keep serving the OLD image and the fix would look like
+# it did nothing. Omitting the version makes AML auto-increment, and the consumers
+# reference the environment by @latest rather than by number.
+name: vlm-lora-env
+description: >-
+  Curated ACPT PyTorch 2.2 / CUDA 12.1 (Python 3.10) plus transformers, peft and
+  accelerate pinned. Used by the train_lora step on the T4 spot cluster.
+
+build:
+  path: .
+  dockerfile_path: Dockerfile.train
+
+tags:
+  base_image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.2-cuda12.1:57
+  track: B

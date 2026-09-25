@@ -1,0 +1,26 @@
+// OPTIONAL - KQL source query, for the case where your telemetry already lives in
+// an Azure Data Explorer cluster. You do not need it to run this repo:
+// build_dataset.py reads telemetry_sample.csv and does not care where it came from.
+//
+// It returns EXACTLY the columns that build_dataset.build_from_frame() expects
+// (device_id, minute, and the 4 raw sensors), which is what lets a single Python
+// module serve a committed CSV and a live cluster without a branch.
+//
+// Usage: set the time range, run against KQL database `sensors`.
+
+let LookbackHours = 24h;
+let _to   = toscalar(telemetry | summarize max(timestamp));
+let _from = _to - LookbackHours;
+telemetry
+| where timestamp between (_from .. _to)
+| summarize
+    temperature_c  = avg(temperature_c),
+    humidity_pct   = avg(humidity_pct),
+    pressure_bar   = avg(pressure_bar),
+    vibration_mm_s = avg(vibration_mm_s)
+  by device_id, minute = bin(timestamp, 1m)
+// A window must be 30 consecutive minutes. Any gap would silently shorten it,
+// so incomplete minutes are dropped here rather than discovered at render time.
+| where isnotnull(temperature_c) and isnotnull(humidity_pct)
+    and isnotnull(pressure_bar) and isnotnull(vibration_mm_s)
+| order by device_id asc, minute asc

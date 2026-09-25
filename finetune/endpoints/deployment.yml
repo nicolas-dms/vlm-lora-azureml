@@ -1,0 +1,38 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+
+name: default
+endpoint_name: maint-vlm-ep
+
+# Bump the version with --set model=azureml:maint-vlm-merged:N after a retrain.
+model: azureml:maint-vlm-merged:1
+
+environment: azureml:vlm-serve-env@latest
+
+code_configuration:
+  code: .
+  scoring_script: score.py
+
+# CPU on purpose. At 256M parameters a DS3_v2 answers in a couple of seconds,
+# and a GPU deployment would bill 24/7 for latency nobody watching the demo can
+# perceive. Managed online endpoints never scale to zero: create late, delete
+# early.
+instance_type: Standard_DS3_v2
+instance_count: 1
+
+request_settings:
+  # Loading transformers + generating 128 tokens on CPU is slow the first time;
+  # the default 5 s timeout turns a working deployment into a mystery 424.
+  request_timeout_ms: 90000
+  max_concurrent_requests_per_instance: 1
+
+liveness_probe:
+  initial_delay: 600
+  period: 30
+  timeout: 10
+  failure_threshold: 30
+
+readiness_probe:
+  initial_delay: 600
+  period: 30
+  timeout: 10
+  failure_threshold: 30

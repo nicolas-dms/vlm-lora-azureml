@@ -1,0 +1,30 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+
+name: vlm_merge_lora
+display_name: Merge - LoRA adapter into base weights (CPU)
+version: "1"
+description: >-
+  Folds the adapter into the base weights and saves full fp16 weights plus the
+  processor. Produces the second, deliberately separate artifact of the run.
+
+inputs:
+  base_model:
+    type: custom_model
+    mode: ro_mount
+  adapter_input:
+    type: uri_folder
+    mode: ro_mount
+
+outputs:
+  merged_output:
+    type: uri_folder
+
+code: .
+environment: azureml:vlm-serve-env@latest
+
+command: >-
+  python merge_lora.py
+  --base_model ${{inputs.base_model}}
+  --adapter_input ${{inputs.adapter_input}}
+  --merged_output ${{outputs.merged_output}}

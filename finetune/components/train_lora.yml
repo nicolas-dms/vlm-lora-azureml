@@ -1,0 +1,63 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+type: command
+
+name: vlm_train_lora
+display_name: Train - LoRA on SmolVLM (T4 spot)
+version: "1"
+description: >-
+  Fine-tunes the text backbone of a VLM with LoRA on chart images paired with JSON
+  work orders. Vision encoder frozen, fp16 AMP, gradient checkpointing - the T4
+  budget. Outputs the adapter only.
+
+inputs:
+  base_model:
+    type: custom_model
+    mode: ro_mount
+  dataset:
+    type: uri_folder
+    mode: ro_mount
+  epochs:
+    type: number
+    default: 2
+  lora_r:
+    type: integer
+    default: 8
+  lora_alpha:
+    type: integer
+    default: 16
+  lora_dropout:
+    type: number
+    default: 0.05
+  learning_rate:
+    type: number
+    default: 0.0002
+  grad_accum:
+    type: integer
+    default: 8
+  image_px:
+    type: integer
+    default: 384
+  max_samples:
+    type: integer
+    default: 0
+
+outputs:
+  adapter_output:
+    type: uri_folder
+
+code: .
+environment: azureml:vlm-lora-env@latest
+
+command: >-
+  python train_lora.py
+  --base_model ${{inputs.base_model}}
+  --dataset ${{inputs.dataset}}
+  --adapter_output ${{outputs.adapter_output}}
+  --epochs ${{inputs.epochs}}
+  --lora_r ${{inputs.lora_r}}
+  --lora_alpha ${{inputs.lora_alpha}}
+  --lora_dropout ${{inputs.lora_dropout}}
+  --learning_rate ${{inputs.learning_rate}}
+  --grad_accum ${{inputs.grad_accum}}
+  --image_px ${{inputs.image_px}}
+  --max_samples ${{inputs.max_samples}}

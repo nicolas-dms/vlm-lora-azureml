@@ -1,0 +1,18 @@
+# Local configuration. Never commit workspace identifiers.
+config.json
+.env
+
+# Downloaded models, registered artifacts, evaluation output.
+tmp-*/
+out/
+
+# The generated dataset. It is a deterministic function of
+# finetune/data/telemetry_sample.csv, so it is rebuilt, not stored.
+vlm_ds_*/
+
+# Python. Note that .pyc files embed the absolute source path of the machine
+# that compiled them - that is a real leak, not just noise.
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/

@@ -1,0 +1,40 @@
+{
+  "description": "Work order emitted by the VLM after reading a 30-minute, 4-sensor chart. Kept deliberately short: fewer fields means fewer training examples and a shorter run.",
+  "type": "object",
+  "required": ["device_id", "severity", "root_cause", "action_code", "eta_minutes"],
+  "additionalProperties": false,
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "description": "Machine identifier, printed in the chart title."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "critical"]
+    },
+    "root_cause": {
+      "type": "string",
+      "enum": [
+        "normal_operation",
+        "cooling_degradation",
+        "bearing_wear",
+        "pressure_loss"
+      ]
+    },
+    "action_code": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "MONITOR",
+        "CHK_COOLING",
+        "CHK_BEARING",
+        "CHK_SEALS",
+        "STOP_MAINT"
+      ]
+    },
+    "eta_minutes": {
+      "type": "integer",
+      "description": "Intervention deadline in minutes: 120 for info, 60 for warning, 15 for critical."
+    }
+  }
+}

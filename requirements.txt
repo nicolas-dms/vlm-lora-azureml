@@ -1,0 +1,24 @@
+# Orchestration + dataset build. Everything needed to run bricks 1 to 5 of
+# finetune/notebooks/demo_finetune.ipynb from your machine.
+#
+#   python -m pip install -r requirements.txt
+#
+# Brick 6 (running the adapter locally) additionally needs requirements-local.txt.
+# Use Python 3.10 - 3.12. Not 3.13/3.14: torch and peft have no wheels for them yet.
+
+azure-ai-ml>=1.20
+azure-identity>=1.17
+huggingface_hub>=0.24
+python-dotenv>=1.0
+
+# Dataset build: the CSV -> chart PNGs + JSONL step, which runs locally and free.
+pandas>=2.0
+matplotlib>=3.7
+
+# The notebook is the demo. Without a kernel in this venv, VS Code falls back to
+# whatever interpreter it finds and the .env / package resolution stop matching.
+ipykernel>=6.29
+
+# Pinned deliberately, here as well as in the training image: the repo's own
+# scipy/matplotlib stack still uses aliases deleted in numpy 2.0.
+numpy<2

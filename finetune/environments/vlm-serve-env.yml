@@ -1,0 +1,16 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+
+# No explicit version - see the note in vlm-lora-env.yml. AML environments are
+# immutable, so a fixed version would pin the demo to the first broken build.
+name: vlm-serve-env
+description: >-
+  Curated AzureML minimal inference image (Ubuntu 22.04 / Python 3.11) plus a
+  CPU-only torch and transformers. Used by the maint-vlm-ep deployment.
+
+build:
+  path: .
+  dockerfile_path: Dockerfile.serve
+
+tags:
+  base_image: mcr.microsoft.com/azureml/curated/minimal-py311-inference:60
+  track: B

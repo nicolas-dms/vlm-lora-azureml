@@ -1,0 +1,35 @@
+# Training environment (LoRA fine-tuning of a VLM on a T4).
+#
+# Built FROM the curated ACPT image rather than from a hand-written conda file.
+# A conda file would create a NEW environment inside the image and silently
+# shadow the torch/CUDA build that ACPT exists to provide; the job then fails at
+# the first .cuda() call, several layers away from the cause. Layering pip on top
+# of the image's own interpreter keeps that build intact.
+#
+# ACPT 2.2 / cu121 = Ubuntu 20.04, Python 3.10, PyTorch 2.2. Tag 57 is pinned on
+# purpose: ":latest" would make the environment silently non-reproducible.
+FROM mcr.microsoft.com/azureml/curated/acpt-pytorch-2.2-cuda12.1:57
+
+# transformers >= 4.46 is a hard floor: SmolVLM is an Idefics3 checkpoint and the
+# architecture simply does not exist in earlier releases (the job dies on
+# "Unrecognized configuration class"). num2words is an undeclared hard import of
+# the Idefics3 processor - it is missing from every "obvious" requirements list
+# and only shows up as an ImportError once the GPU node is already billing.
+#
+# "numpy<2" is NOT optional, and it is the pin that is easiest to lose. None of
+# the packages above requires numpy 2, but none of them forbids it either, so pip
+# happily installs 2.2.x and *upgrades the image's own numpy 1.x in place*. The
+# image's scipy was built against numpy 1.x and still does `from numpy import Inf`
+# - an alias deleted in numpy 2.0. The blast radius is absurdly far from the
+# cause: `import peft` -> transformers' lazy loader -> modeling_bloom ->
+# loss_for_object_detection -> scipy.optimize ->
+#     ImportError: cannot import name 'Inf' from 'numpy'
+# i.e. a LoRA job dies inside an object-detection loss helper. The only warning is
+# a SciPy UserWarning at the top of the log that is easy to read past.
+RUN pip install --no-cache-dir \
+        "numpy<2" \
+        transformers==4.49.0 \
+        peft==0.14.0 \
+        accelerate==1.4.0 \
+        num2words==0.5.13 \
+        pillow==11.1.0
